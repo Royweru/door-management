@@ -1,0 +1,53 @@
+// prisma/schema.prisma
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum UserRole{
+  USER
+  ADMIN
+}
+
+model User {
+  id            String @id @default(auto())@map("_id")@db.ObjectId
+  name          String?
+  email         String?   @unique
+  emailVerified DateTime? @map("email_verified")
+  image         String?
+  hashedPassword String?
+  role UserRole @default(USER)
+  accounts      Account[]
+ 
+  @@map("users")
+}
+
+model Account {
+   id String@id @default(auto())@map("_id")@db.ObjectId
+  userId String @db.ObjectId
+  type String
+  provider String
+  providerAccountId String
+  refresh_token String? @db.String
+  access_token String? @db.String
+  expires_at Int?
+  token_type String?
+  scope String?
+  id_token String?
+  session_state String?
+
+  user User @relation(fields: [userId],references: [id], onDelete:Cascade)
+
+  @@unique([provider,providerAccountId])
+}
+model VerificationCode {
+  id     String @id @default(auto())@map("_id")@db.ObjectId
+  email   String
+  code    String   @unique
+  expires DateTime
+
+  @@unique([email, code])
+}
